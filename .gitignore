@@ -9,6 +9,7 @@
 .ccache/
 .cache/
 .cores/
+build*/
 /build*/
 /cmake-build-*/
 CMakeLists.txt.user
