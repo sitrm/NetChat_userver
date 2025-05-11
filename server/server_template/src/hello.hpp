@@ -4,10 +4,22 @@
 #include <userver/server/websocket/websocket_handler.hpp>
 #include <userver/server/websocket/server.hpp>
 //-------------------------------------------------------------------------------------------------------------
+#include <userver/utils/uuid4.hpp>
+#include <userver/engine/io/socket.hpp>
+//-------------------------------------------------------------------------------------------------------------
+#include <chrono>
 #include <unordered_set>
 #include <mutex>
 //-------------------------------------------------------------------------------------------------------------
 namespace Websocket {
+
+struct ClientInfo{
+    std::string id;
+    std::string ip_address;
+    server::websocket::WebSocketConnection* connection;
+    std::chrono::system_clock::time_point connected_at;
+};
+
 
 /// [Websocket service sample - component]
 class WebsocketsHandler final : public server::websocket::WebsocketHandlerBase {
@@ -22,14 +34,21 @@ public:
     void Handle(userver::server::websocket::WebSocketConnection& chat,
                 userver::server::request::RequestContext&) const override;
     // chat - объект соединения
-    // контекст запроса 
+    // контекст запроса     
 //-------------------------------------------------------------------------------------------------------------
 private:
 	static void BroadcastMessage(std::string_view message);
+  //  static void SendToClient(const std::string& client_id, std::string_view message);
+    static std::vector<ClientInfo> GetConnectedClients();
 
+    static ClientInfo CreateClientInfo(userver::server::websocket::WebSocketConnection& chat,
+                                        userver::server::request::RequestContext&);
+    
 private:
-	static inline std::unordered_set<server::websocket::WebSocketConnection*> connections;
-	static inline std::mutex connections_mutex;
+    // static inline server::websocket::WebSocketConnection* connections;
+	// static inline std::mutex connections_mutex;
+    static inline std::unordered_map<std::string, ClientInfo> clients;
+    static inline std::mutex clients_mutex;
 };
 /// [Websocket service sample - component]
 

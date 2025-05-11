@@ -11,3 +11,7 @@
 #         response = await chat.recv()
 #         assert response == 'hello'
 #         # /// [Functional test]
+
+def test_dummy(service_client):
+    """Dummy test to satisfy service-runner requirements"""
+    pass
