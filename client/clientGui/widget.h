@@ -12,7 +12,8 @@
 #include <QGridLayout>
 #include <QKeyEvent>  // for enter
 #include <QtWebSockets/QWebSocket>
-
+#include <QRegularExpression>
+#include <QRegularExpressionMatch>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class Widget; }

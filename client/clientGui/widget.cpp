@@ -48,7 +48,26 @@ void Widget::on_connectPBN_clicked()
         log("Error: IP and Port cannot be empty!");
     }
 
-    if(!userName.isEmpty() && !IP_ADDRESS.isEmpty() && !PORT.isEmpty()){
+    QRegularExpression ipRegex("^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\."
+                               "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\."
+                               "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\."
+                               "(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$");
+
+    if(!ipRegex.match(IP_ADDRESS).hasMatch()){
+         log("Error: Invalid IP address format! Please use XXX.XXX.XXX.XXX format with numbers 0-255");
+    }
+    bool isPortValid;
+    int port = PORT.toInt(&isPortValid);
+    if(!isPortValid || port < 1 || port > 65535){
+        log("Error: Port must be a number between 1 and 65535!");
+    }
+
+    if(!userName.isEmpty() &&
+       !IP_ADDRESS.isEmpty() &&
+       !PORT.isEmpty() &&
+       ipRegex.match(IP_ADDRESS).hasMatch() &&
+       (isPortValid && port >= 1 && port <= 65535)){
+
        QString url = QString("ws://%1:%2/chat").arg(IP_ADDRESS).arg(PORT);
        connectToServer(url);
     }
