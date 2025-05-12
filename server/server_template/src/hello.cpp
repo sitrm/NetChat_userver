@@ -70,8 +70,12 @@ void WebsocketsHandler::Handle(
     LOG_INFO() << fmt::format("New client connected: ID={}, IP={}",
                                 client_id, client_info.ip_address);
 
-    chat.Send(server::websocket::Message{
-        fmt::format("Welcome! Your ID: {}", client_id)});
+    try{
+        chat.Send(server::websocket::Message{
+                fmt::format("Welcome! Your ID: {}", client_id)});
+    }catch (const std::exception& ex) {
+        LOG_WARNING() << "Failed to send welcome message: " << ex.what();
+    }
 
     //erase user if disconnetc
     //Deleting the connection when exiting the scope (RAII)
@@ -87,17 +91,29 @@ void WebsocketsHandler::Handle(
 
     // пока не будет запрошена отмена задачи
     while (!engine::current_task::ShouldCancel()) {
-        chat.Recv(message);               // throws on closed/dropped connection
-        if (message.close_status) break;  // explicit close if any
-        if (message.is_text) {
-            if (!message.data.empty()){
-                LOG_INFO() << fmt::format("Message from client {}: {}", client_id, message.data);
-                BroadcastMessage(fmt::format("{}", message.data));
+        try{
+            chat.Recv(message);               // throws on closed/dropped connection
+    
+            if (message.close_status) break;  // explicit close if any
+            if (message.is_text) {
+                if (!message.data.empty()){
+                    LOG_INFO() << fmt::format("Message from client {}: {}", client_id, message.data);
+                    BroadcastMessage(fmt::format("{}", message.data));
+                }
             }
+        } catch(const std::exception& ex){
+            LOG_WARNING() << "Error receiving message: " << ex.what();
+            break;
         }
     }
-
-    if (message.close_status) chat.Close(*message.close_status);  // send messafe about closing confiramtion
+    // send messafe about closing confiramtion
+    if (message.close_status) {
+        try {
+            chat.Close(*message.close_status);
+        } catch (const std::exception& ex) {
+            LOG_WARNING() << "Error closing connection: " << ex.what();
+        }
+    } 
 }
 //-------------------------------------------------------------------------------------------------------------
 }  // namespace samples::websocket
